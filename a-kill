@@ -1,0 +1,67 @@
+#!/bin/bash
+# Copyright (C) 2012 Texas Instruments
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Gabriel M. Beddingfield <gabrbedd@ti.com>
+#
+# DESCRIPTION OF a-kill
+# ---------------------
+#
+# Kills all processes on target device that match a string.
+#
+# For example:
+#
+#     $ a-kill mediaserver
+#
+# Will kill all processes that have 'mediaserver' in the command line.
+# There is usually only one called 'mediaserver'.  However:
+#
+#     $ a-kill media
+#
+# Will kill all process that have 'media' in the command line.  There
+# are usually three.
+#
+# If you want to try first, then you can use the -d option for
+# "dry run."  It will show you the processes that it would have killed.
+#
+# The program depends on 'adb' being in the current path, and ps being
+# the default one supplied by android.  (E.g. this won't work with
+# the ps supplied by busybox.)
+#
+
+if [ $# -lt 1 ] ; then
+    echo "Usage: a-kill <case-insensitive-string> [-d]"
+    echo "   -d for a dry-run (don't actually kill anything)"
+    echo
+    echo "Example: a-kill mediaserver"
+    exit
+fi
+
+DRY_RUN=no
+if [ "$2" == "-d" ] ; then
+    DRY_RUN=yes
+fi
+
+for LINE in $(adb shell ps | awk '{print $2 ";" $9}' | grep -i "$1") ; do
+    LINE=$(echo "$LINE" | sed 's/\x0D//') # Remove DOS line endings
+    APID=$(echo "$LINE" | sed 's/;.*//')
+    NAME=$(echo "$LINE" | sed 's/^[0-9]\{1,\};//')
+    if [ "$DRY_RUN" = "yes" ] ; then
+	echo "Would kill $NAME (pid=$APID)"
+    else
+	echo "Killing $NAME (pid=$APID)"
+	adb shell kill "$APID"
+    fi
+done
+
