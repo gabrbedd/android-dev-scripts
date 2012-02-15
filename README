@@ -1,0 +1,12 @@
+android-dev-scripts
+-------------------
+
+This is a motley collection of handy, dandy scripts and programs that
+are helpful when doing android development.  As we get more scripts in
+the future, we may add more organization.
+
+LICENSE RULES
+-------------
+
+All code here needs to be Apache 2 or public domain.  Please include
+license and copyright information at the top of each file.
