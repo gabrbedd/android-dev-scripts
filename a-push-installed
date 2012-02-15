@@ -1,0 +1,68 @@
+#!/bin/bash
+# Copyright (C) 2012 Texas Instruments
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Gabriel M. Beddingfield <gabrbedd@ti.com>
+#
+# DESCRIPTION OF a-push-installed
+# -------------------------------
+#
+# After rebuilding something marginally for android
+# (e.g. libtinyalsa.so), if you capture the output of 'make' then you
+# can use this script to push to the device /only/ the new files.
+#
+# Before executing this command, you /must/ be root on the device and
+# have /system remounted read/write:
+#
+#     $ adb root
+#     $ adb remount
+#
+# Typical usage (from inside your 'mydroid' folder):
+#
+#     $ m libfoo 2>&1 | tee log.txt
+#     $ a-push-installed log.txt .
+#
+# This is especially helpful when you're inside a module:
+#
+#     $ cd external/foo
+#     $ mm 2>&1 | tee log.txt
+#     $ a-push-installed log.txt ../..
+#
+# The program depends on 'adb' being in the current path.
+#
+
+if [ $# -lt 2 ] ; then
+    echo "Usage: a-push-installed <logfile> <path/to/mydroid>"
+    echo "Example: a-push-installed log.txt ."
+    exit
+fi
+
+if [ -z "$1" ] ; then
+    echo "Must provide log file name"
+    exit 1
+fi
+LOGFILE="$1"
+
+if [ -z "$2" ] ; then
+    PROOT="."
+else
+    PROOT="$2"
+fi
+
+for N in $(grep "^Install: " "$LOGFILE" | sed 's/^Install: //') ; do
+    N="$PROOT/$N"
+    M=$(echo $N | sed 's/.*\/system\//\/system\//')
+    echo "$N ==> $M"
+    adb push "$N" "$M"
+done
