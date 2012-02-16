@@ -1,0 +1,32 @@
+#!/bin/bash
+# Copyright (C) 2012 Texas Instruments
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Ragha Khandenahally <ragha@ti.com>
+#
+# Description:
+# Parse the output of repo diff > repodiff.diff, extract the diff for each
+# project and apply the diffs individually using repo forall command.
+
+usage() {
+	echo usage: `basename $0` repo-diff-file
+}
+[ $# -lt 1 ] && usage && exit
+repodiff=$1
+patchdir=$PWD/patches
+projects=`awk -v patchdir="$patchdir/" 'BEGIN {RS="project "; FS="\n"; cmd1="dirname ";}; { print $1;patchfile=patchdir$1NR; cmd=cmd1 patchfile; if ( (cmd | getline dir) > 0) { cmd=sprintf("%s%s", "mkdir -p ", dir);system(cmd) } else { print cmd failed};  for(j=2; j<NF;j++) print $j > patchfile}' "$repodiff"`
+#echo $projects
+repo forall $projects -c 'git apply --check '$patchdir'/$REPO_PATH/* && git apply '$patchdir'/$REPO_PATH/*'
+rm -rf $patchdir
+#repo forall $projects -c 'git reset --hard'
