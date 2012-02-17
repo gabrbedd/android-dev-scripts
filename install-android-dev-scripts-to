@@ -1,0 +1,155 @@
+#!/bin/bash
+# Copyright (C) 2012 Texas Instruments
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Gabriel M. Beddingfield <gabrbedd@ti.com>
+#
+# DESCRIPTION OF install-android-dev-scripts-to
+# ---------------------------------------------
+#
+# Installs all of the scripts in this project to the folder of your
+# choosing (HINT: ~/bin).  It does not copy, but instead symlinks.
+#
+
+THIS_SCRIPT=install-android-dev-scripts-to
+VERBOSE="no"
+DRYRUN="no"
+PWD="$(pwd)"
+MODE="install"
+
+function die()
+{
+    if [ ! -z "$1" ] ; then
+	echo "$1"
+    fi
+    exit 1
+}
+
+function usage()
+{
+cat <<EOF
+Usage: $THIS_SCRIPT <dest-folder> [-d|-v|-u]
+    <dest-folder> should be in your \$PATH
+    -d don't actually do anything (dry run)
+    -v verbose messages
+    -u don't install... uninstall
+EOF
+}
+
+function log_v()
+{
+    if [ "$VERBOSE" == "yes" ] ; then
+	echo "$@"
+    fi
+}
+
+# args: src dest dryrun:(yes|no)
+function install_to()
+{
+    if [ $# -ne 3 ] ; then
+	echo "Internal error: install_to() expects 3 args, but only given $# ($@)"
+	exit
+    fi
+    SRC="$1"
+    BASENAME=$(basename "$SRC")
+    DEST="$2/$BASENAME"
+    DRYRUN="$3"
+
+    if [ -e "$DEST" ] ; then
+	uninstall_from "$@"
+    fi
+
+    log_v "Linking $DEST -> $SRC"
+    if [ "$DRYRUN" != "yes" ] ; then
+	ln -s "$SRC" "$DEST" || die "Error: could not create link"
+    fi
+
+    return 0
+}
+
+# args: src dest dryrun:(yes|no)
+function uninstall_from()
+{
+    if [ $# -ne 3 ] ; then
+	echo "Internal error: install_to() expects 3 args, but only given $# ($@)"
+	exit
+    fi
+    SRC="$1"
+    BASENAME=$(basename "$SRC")
+    DEST="$2/$BASENAME"
+    DRYRUN="$3"
+
+    if [ -e "$DEST" ] ; then
+	if [ -L "$DEST" ] ; then
+	    log_v "removing symlink $DEST"
+	    if [ "$DRYRUN" != "yes" ] ; then
+		rm "$DEST" || die "Error: could not remove $DEST"
+	    fi
+	else
+	    echo "Error: $DEST exists but is not a symlink (skipping)"
+	    return 0
+	fi
+    fi
+
+    return 0
+}
+
+#
+# main logic
+#
+
+if [ $# -eq 0 ] ; then
+    usage
+    exit
+fi
+
+#
+# Process args
+#
+
+DESTFOLDER="$1"
+shift
+
+while [ $# -ne 0 ] ; do
+    case "$1" in
+	"-d") DRYRUN="yes" ;;
+	"-v") VERBOSE="yes" ;;
+	"-u") MODE="uninstall" ;;
+	*) die "Unsupported option '$1'" ;;
+    esac
+    shift
+done
+
+if [ "$2" == "-d" ] ; then
+    DRYRUN="yes"
+fi
+
+if [ ! -d "$DESTFOLDER" ] ; then
+    echo "Error: '$DESTFOLDER' does not exist or is not a directory"
+    exit 1
+fi
+
+for N in "$PWD"/* ; do
+    if [ "$N" == "$PWD/$THIS_SCRIPT" ] ; then
+	continue
+    fi
+
+    if [ \( -f "$N" \) -a \( -x "$N" \) ] ; then
+	if [ "$MODE" == "install" ] ; then
+	    install_to "$N" "$DESTFOLDER" "$DRYRUN"
+	else
+	    uninstall_from "$N" "$DESTFOLDER" "$DRYRUN"
+	fi
+    fi
+done
