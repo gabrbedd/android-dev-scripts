@@ -17,3 +17,12 @@ LICENSE RULES
 All code here needs to be Apache 2 or public domain.  Please include
 license and copyright information at the top of each file.
 
+INSTALLATION
+------------
+
+Run the program install-android-dev-scripts:
+
+    $ ./install-android-dev-scripts ~/bin
+
+This will create symlinks inside of ~/bin to all of these scripts.
+Make sure that ~/bin is in your path.
