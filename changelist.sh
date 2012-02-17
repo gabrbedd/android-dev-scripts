@@ -1,8 +1,34 @@
 #!/bin/bash
+# Copyright (C) 2012 Texas Instruments
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Tony Lofthouse <tony.lofthouse@ti.com>
+#
+# Description: See help()
+#
+# Dependencies:
+# awk, fgrep, ssh, git, cat, tac
+#
 #_p_fromgitcommit=6547d805fa1fa4a5f4b7b2daf9b54aa899c75f00
 #_p_branch=p-android-omap-3.0
 #_p_project=kernel/omap
 _p_server=review.omapzoom.org
+_p_project=
+_p_branch=
+_p_fromgitcommit=
+
+# Misc options
 _p_full=
 _p_printfetch=
 
@@ -115,10 +141,6 @@ gerrit_output()
 	else
 		gerrit_printfetch
 	fi
-	#fgrep -e subject: -e url: -e ref: | sed -e "s?ref:?git fetch ssh://$_p_server/${_p_project}?"  | awk "/ref:/{ print $2 }"
-#	fgrep -e subject: -e url: -e ref: | awk "// { print} /ref:/{ print \"    git fetch ssh://$_p_server/$_p_project \" \$2 \" && git cherry-pick FETCH_HEAD\" }"
-
-#git fetch ssh://a0741364@review.omapzoom.org:29418/kernel/omap refs/changes/87/18787/7 && git cherry-pick FETCH_HEAD
 }
 
 
