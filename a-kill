@@ -53,15 +53,18 @@ if [ "$2" == "-d" ] ; then
     DRY_RUN=yes
 fi
 
-for LINE in $(adb shell ps | awk '{print $2 ";" $9}' | grep -i "$1") ; do
-    LINE=$(echo "$LINE" | sed 's/\x0D//') # Remove DOS line endings
-    APID=$(echo "$LINE" | sed 's/;.*//')
-    NAME=$(echo "$LINE" | sed 's/^[0-9]\{1,\};//')
-    if [ "$DRY_RUN" = "yes" ] ; then
-	echo "Would kill $NAME (pid=$APID)"
-    else
-	echo "Killing $NAME (pid=$APID)"
-	adb shell kill "$APID"
-    fi
-done
+while [ $# -ge 1 ] ; do
+    for LINE in $(adb shell ps | awk '{print $2 ";" $9}' | grep -i "$1") ; do
+	LINE=$(echo "$LINE" | sed 's/\x0D//') # Remove DOS line endings
+	APID=$(echo "$LINE" | sed 's/;.*//')
+	NAME=$(echo "$LINE" | sed 's/^[0-9]\{1,\};//')
+	if [ "$DRY_RUN" = "yes" ] ; then
+	    echo "Would kill $NAME (pid=$APID)"
+	else
+	    echo "Killing $NAME (pid=$APID)"
+	    adb shell kill "$APID"
+	fi
+    done
 
+    shift
+done
