@@ -60,6 +60,15 @@ else
     PROOT="$2"
 fi
 
+if [ "$LOGFILE" == "last" ] ; then
+    LOGFILE=$(ls log-* | sort -r | head -1)
+    if [ -z "$LOGFILE" ] ; then
+	echo "Error: Could not discern what the last logfile was. (expected log-*)"
+	exit 1
+    fi
+    echo "Using log file $LOGFILE"
+fi
+
 for N in $(grep "^Install: " "$LOGFILE" | sed 's/^Install: //') ; do
     N="$PROOT/$N"
     M=$(echo $N | sed 's/.*\/system\//\/system\//')
