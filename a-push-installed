@@ -63,6 +63,9 @@ fi
 for N in $(grep "^Install: " "$LOGFILE" | sed 's/^Install: //') ; do
     N="$PROOT/$N"
     M=$(echo $N | sed 's/.*\/system\//\/system\//')
+    if [ "$N" == "$M" ] ; then
+	continue
+    fi
     echo "$N ==> $M"
     adb push "$N" "$M"
 done
